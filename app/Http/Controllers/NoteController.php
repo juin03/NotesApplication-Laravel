@@ -15,7 +15,10 @@ class NoteController extends Controller
         // Retrieve a paginated list of notes from the database using Eloquent ORM.
         // The `orderBy` method sorts the notes by their 'created_at' attribute in descending order.
         // The `paginate(15)` method paginates the results, with 15 notes per page
-        $notes = Note::query()->orderBy('created_at', 'desc')->paginate(15);
+        $notes = Note::query()
+            ->where('user_id', request()->user()->id)
+            ->orderBy('created_at', 'desc')
+            ->paginate(1);
         // dd is a helper function that dumps the variable and ends execution of the script.
         // dd($notes);
         return view('note.index', ['notes' => $notes]);
@@ -35,10 +38,10 @@ class NoteController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'note' => ['required','string']
+            'note' => ['required', 'string']
         ]);
 
-        $data['user_id'] = 1;
+        $data['user_id'] = $request->user()->id;
         $note = Note::create($data);
 
         return to_route('note.show', $note)->with('message', 'Note created successfully');
@@ -49,6 +52,8 @@ class NoteController extends Controller
      */
     public function show(Note $note)
     {
+        if($note->user_id !== request()->user()->id)
+            abort(403);
         return view('note.show', ['note' => $note]);
     }
 
@@ -57,6 +62,8 @@ class NoteController extends Controller
      */
     public function edit(Note $note)
     {
+        if($note->user_id !== request()->user()->id)
+            abort(403);
         return view('note.edit', ['note' => $note]);
     }
 
@@ -65,8 +72,11 @@ class NoteController extends Controller
      */
     public function update(Request $request, Note $note)
     {
+        if($note->user_id !== request()->user()->id)
+            abort(403);
+
         $data = $request->validate([
-            'note' => ['required','string']
+            'note' => ['required', 'string']
         ]);
 
         $note->update($data);
@@ -79,6 +89,9 @@ class NoteController extends Controller
      */
     public function destroy(Note $note)
     {
+        if($note->user_id !== request()->user()->id)
+            abort(403);
+
         $note->delete();
 
         return to_route('note.index')->with('message', 'Note deleted successfully');

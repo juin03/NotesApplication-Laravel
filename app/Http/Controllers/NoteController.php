@@ -12,7 +12,13 @@ class NoteController extends Controller
      */
     public function index()
     {
-        return view('note.index');
+        // Retrieve a paginated list of notes from the database using Eloquent ORM.
+        // The `orderBy` method sorts the notes by their 'created_at' attribute in descending order.
+        // The `paginate(15)` method paginates the results, with 15 notes per page
+        $notes = Note::query()->orderBy('created_at', 'desc')->paginate(15);
+        // dd is a helper function that dumps the variable and ends execution of the script.
+        // dd($notes);
+        return view('note.index', ['notes' => $notes]);
     }
 
     /**
@@ -36,7 +42,7 @@ class NoteController extends Controller
      */
     public function show(Note $note)
     {
-        return view('note.show');
+        return view('note.show', ['notes' => $note]);
     }
 
     /**
@@ -44,7 +50,7 @@ class NoteController extends Controller
      */
     public function edit(Note $note)
     {
-        return view('note.edit');
+        return view('note.edit', ['notes' => $note]);
     }
 
     /**
